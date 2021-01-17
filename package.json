@@ -1,0 +1,24 @@
+{
+  "name": "objective-j-compiler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChristopherBruno78/Objective-J-Compiler.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ChristopherBruno78/Objective-J-Compiler/issues"
+  },
+  "homepage": "https://github.com/ChristopherBruno78/Objective-J-Compiler#readme",
+  "dependencies": {
+    "acorn-objj": "https://cbruno@bitbucket.org/cbruno/acorn-objj.git",
+    "source-map": "0.4.x",
+    "object-assign": "^4.1.1"
+  }
+}

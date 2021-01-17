@@ -1,0 +1,10 @@
+
+
+@implementation CPObject {
+
+
+
+}
+
+
+@end
