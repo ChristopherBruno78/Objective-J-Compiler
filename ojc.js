@@ -6,8 +6,9 @@ const AcornObj = require("acorn-objj"),
     CompilerObj = require("./lib/compiler.js"),
     CodeGenerator = require("./lib/code-generator.js"),
     IssueHandler = require("acorn-issue-handler"),
-    fs = require("fs"),
-    path = require('path');
+    getopt = require("node-getopt"),
+    FS = require("fs"),
+    PATH = require('path');
 
 
 function compile(source, sourcePath) {
@@ -62,8 +63,6 @@ function compile(source, sourcePath) {
         }
         return compiler.code;
     }
-
-
 }
 
 function printIssue(ex, sourcePath) {
@@ -83,13 +82,36 @@ function printIssue(ex, sourcePath) {
     return buf.join("\n");
 }
 
-const fileNames = process.argv.slice(2);
+
+let opt = getopt.create([
+    ["o", "output=FILE", "output .js file"]
+]);
+
+opt.setHelp(
+    "Usage: ojc [OPTIONS] INPUT_FILES\n" +
+    "\n" +
+    "[[OPTIONS]]\n" +
+    "\n"
+);
+
+opt.bindHelp();
+opt.parseSystem();
+
+let argv = opt.argv;
+let options = opt.options;
+
+// Bail if no input files (specified after options)
+if (!argv || argv.length == 0) {
+    console.error("ojc: error: no input files");
+    process.exit(1);
+}
+
 
 let out = "";
-for (var i in fileNames) {
-    const pathName = path.resolve(fileNames[i]);
+for (let i in argv) {
+    const pathName = PATH.resolve(argv[i]);
     try {
-        let source = fs.readFileSync(pathName, 'utf8');
+        let source = FS.readFileSync(pathName, 'utf8');
         let code = compile(source, pathName);
         out += code;
     } catch (e) {
@@ -98,4 +120,9 @@ for (var i in fileNames) {
     }
 }
 
-console.log(out);
+let outputFile = options["output"];
+if (outputFile) {
+    FS.writeFileSync(outputFile, out, 'utf8');
+} else {
+    console.log(out);
+}
