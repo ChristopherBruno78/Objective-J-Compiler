@@ -36,6 +36,7 @@ function compile(source, sourcePath) {
             classDefs: new Map(),
             protocolDefs: new Map(),
             typedefs: new Map(),
+            sourceMap: false,
             importedFiles: new Set()
         };
 
@@ -61,7 +62,7 @@ function compile(source, sourcePath) {
             if (errors)
                 return;
         }
-        return compiler.code;
+        return {code: compiler.code};//, sourceMap : JSON.parse(compiler.sourceMap)}
     }
 }
 
@@ -107,22 +108,36 @@ if (!argv || argv.length == 0) {
 }
 
 
-let out = "";
-for (let i in argv) {
-    const pathName = PATH.resolve(argv[i]);
+let final = {
+    code: "",
+    sourceMap: null
+};
+
+if (argv.length === 1) {
+    const pathName = PATH.resolve(argv[0]);
     try {
         let source = FS.readFileSync(pathName, 'utf8');
-        let code = compile(source, pathName);
-        out += code;
+        final = compile(source, pathName);
+
     } catch (e) {
         console.log(e);
         console.error(`File not found: ${pathName}`);
     }
+} else {
+    console.error("Error: ojc only compiles one file at a time.")
+    process.exit(1);
 }
 
 let outputFile = options["output"];
 if (outputFile) {
-    FS.writeFileSync(outputFile, out, 'utf8');
+
+    FS.mkdirSync(PATH.dirname(outputFile), {recursive: true});
+    FS.writeFileSync(outputFile, final.code, 'utf8');
+    // FS.writeFileSync(
+    //     PATH.basename(outputFile) + ".map",
+    //      JSON.stringify(final.sourceMap, null, 2),
+    //      "utf8"
+    // );
 } else {
-    console.log(out);
+    console.log(final.code);
 }
