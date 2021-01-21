@@ -12,19 +12,17 @@ const AcornObj = require("acorn-objj"),
 
 
 function compile(source, sourcePath) {
-
     //acorn options
     const options = {
         sourceType: 'module'
     };
-
     let issues = new IssueHandler.IssueList(),
         ast = null;
     try {
         ast = AcornObj.parse.parse(source, options, issues);
     } catch (ex) {
         if (IssueHandler.isIssue(ex)) {
-            printIssue(ex, sourcePath);
+            return {error: ex}
         } else {
             throw ex;
         }
@@ -36,8 +34,7 @@ function compile(source, sourcePath) {
             classDefs: new Map(),
             protocolDefs: new Map(),
             typedefs: new Map(),
-            sourceMap: false,
-            importedFiles: new Set()
+            sourceMap: false
         };
 
         global.DEBUG = false;
@@ -47,40 +44,17 @@ function compile(source, sourcePath) {
         const compiler = new CompilerObj.Compiler(source, sourcePath, ast, issues, CompilerObj.defaultOptions);
         compiler.compileWithFormat(CodeGenerator);
 
-        if (compiler.errorCount > 0) {
-            let count = compiler.errorCount,
-                i = 0,
-                errors = false;
+        let compilerIssues = [];
+        if (compiler.issueCount > 0) {
+            let count = compiler.issueCount,
+                i = 0;
             for (; i < count; i++) {
-                let ex = compiler.issuesList.issues[i];
-                if (ex.severity === 'error') {
-                    printIssue(ex, sourcePath);
-                    errors = true;
-                }
+                let ex = compiler.issues.issues[i];
+                compilerIssues.push(ex);
             }
-
-            if (errors)
-                return;
         }
-        return {code: compiler.code};//, sourceMap : JSON.parse(compiler.sourceMap)}
+        return {code: compiler.code, issues: compilerIssues || []};//, sourceMap : JSON.parse(compiler.sourceMap)}
     }
-}
-
-function printIssue(ex, sourcePath) {
-
-    let buf = [];
-    if (ex) {
-        buf.push(ex.name + ':');
-        if (ex.message) {
-            buf.push(ex.message);
-        }
-
-        if (ex.source) {
-            buf.push('"' + ex.source.trim() + '"\t(' + sourcePath + ', line: ' + ex.lineInfo.line + ', column: ' + ex.lineInfo.column + ')');
-        }
-    }
-
-    return buf.join("\n");
 }
 
 
@@ -102,11 +76,10 @@ let argv = opt.argv;
 let options = opt.options;
 
 // Bail if no input files (specified after options)
-if (!argv || argv.length == 0) {
+if (!argv || argv.length === 0) {
     console.error("ojc: error: no input files");
     process.exit(1);
 }
-
 
 let final = {
     code: "",
@@ -115,10 +88,15 @@ let final = {
 
 if (argv.length === 1) {
     const pathName = PATH.resolve(argv[0]);
+    const relPath = PATH.relative(process.cwd(), pathName);
     try {
         let source = FS.readFileSync(pathName, 'utf8');
-        final = compile(source, pathName);
-
+        final = Object.assign(final, compile(source, pathName));
+        if (final.error) {
+            let err = final.error;
+            console.error(`Compilation error in ${relPath} at (${err.lineInfo.line}, ${err.lineInfo.column}): ${err.message}`);
+            process.exit(1);
+        }
     } catch (e) {
         console.log(e);
         console.error(`File not found: ${pathName}`);
@@ -128,16 +106,17 @@ if (argv.length === 1) {
     process.exit(1);
 }
 
+final.issues.forEach((issue) => {
+    let severity = issue.severity.toUpperCase();
+    let sourceFile = PATH.relative(process.cwd(), issue.file);
+    let lineInfo = issue.lineInfo;
+    console.log(`${severity}: ${issue.message} in ${sourceFile} at (${lineInfo.line},${lineInfo.column})`);
+});
+
 let outputFile = options["output"];
 if (outputFile) {
-
     FS.mkdirSync(PATH.dirname(outputFile), {recursive: true});
     FS.writeFileSync(outputFile, final.code, 'utf8');
-    // FS.writeFileSync(
-    //     PATH.basename(outputFile) + ".map",
-    //      JSON.stringify(final.sourceMap, null, 2),
-    //      "utf8"
-    // );
 } else {
     console.log(final.code);
 }

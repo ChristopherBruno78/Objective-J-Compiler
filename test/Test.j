@@ -1,4 +1,6 @@
-@import 'CPObjecst.j'
+import 'CPObject.j'
+
+let a = @"Hello";
 
 @implementation Test {
 
@@ -7,7 +9,7 @@
 }
 
 -(void) sayHello {
-  console.log("Hello");
+        alert('Hello')
 
 }
 
