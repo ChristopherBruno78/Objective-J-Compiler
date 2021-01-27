@@ -45,6 +45,11 @@ module.exports = function(source, sourcePath) {
                 compilerIssues.push(ex);
             }
         }
-        return {code: compiler.code, issues: compilerIssues || []};//, sourceMap : JSON.parse(compiler.sourceMap)}
+        return {
+            code: compiler.code,
+            superclassRefs: compiler.superclassRefs,
+            classDefs : Object.fromEntries(compiler.classDefs),
+            issues: compilerIssues || []
+        };//, sourceMap : JSON.parse(compiler.sourceMap)}
     }
 }

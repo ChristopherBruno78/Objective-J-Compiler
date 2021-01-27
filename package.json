@@ -21,7 +21,6 @@
   "homepage": "https://github.com/ChristopherBruno78/Objective-J-Compiler#readme",
   "dependencies": {
     "acorn-objj": "https://cbruno@bitbucket.org/cbruno/acorn-objj.git",
-    "find-line-column": "^0.5.2",
     "node-getopt": "^0.3.2",
     "object-assign": "^4.1.1",
     "source-map": "0.4.x"
