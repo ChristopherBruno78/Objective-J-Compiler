@@ -50,7 +50,7 @@ module.exports = function(source, sourcePath) {
         return {
             code: compiler.code,
             classDefs : Object.fromEntries(compiler.classDefs),
-            superClassRefs: compiler.superclassRefs,
+            superclassRefs: compiler.superclassRefs,
             issues: compilerIssues || [],
             dependencies: compiler.dependencies
         };
