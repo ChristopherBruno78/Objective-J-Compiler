@@ -3,6 +3,7 @@ const AcornObj = require("acorn-objj"),
       CodeGenerator = require("./lib/code-generator.js"),
       IssueHandler = require("acorn-issue-handler");
 
+
 module.exports = function(source, sourcePath) {
     //acorn options
     const options = {
@@ -45,11 +46,14 @@ module.exports = function(source, sourcePath) {
                 compilerIssues.push(ex);
             }
         }
+
         return {
             code: compiler.code,
-            superclassRefs: compiler.superclassRefs,
             classDefs : Object.fromEntries(compiler.classDefs),
-            issues: compilerIssues || []
-        };//, sourceMap : JSON.parse(compiler.sourceMap)}
+            issues: compilerIssues || [],
+            dependencies: compiler.dependencies
+        };
+
+        //, sourceMap : JSON.parse(compiler.sourceMap)}
     }
 }

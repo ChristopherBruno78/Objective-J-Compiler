@@ -47,6 +47,9 @@ if (argv.length === 1) {
             console.error(`Compilation error in ${relPath} at (${err.lineInfo.line}, ${err.lineInfo.column}): ${err.message}`);
             process.exit(1);
         }
+
+        final.classDefs = Object.fromEntries(final.classDefs);
+
     } catch (e) {
         console.log(e);
         console.error(`File not found: ${pathName}`);
@@ -55,6 +58,8 @@ if (argv.length === 1) {
     console.error("Error: ojc only compiles one file at a time.")
     process.exit(1);
 }
+
+console.log(final.issues);
 
 final.issues.forEach((issue) => {
     let severity = issue.severity.toUpperCase();
