@@ -1,60 +1,67 @@
 const AcornObj = require("acorn-objj"),
-      CompilerObj = require("./lib/compiler.js"),
-      CodeGenerator = require("./lib/code-generator.js"),
-      IssueHandler = require("acorn-issue-handler");
+  CompilerObj = require("./lib/compiler.js"),
+  CodeGenerator = require("./lib/code-generator.js"),
+  IssueHandler = require("acorn-issue-handler");
 
+module.exports = function (source, sourcePath) {
+  //acorn options
+  let comments = [];
+  const options = {
+    sourceType: "module",
+    onComment: comments,
+  };
+  let issues = new IssueHandler.IssueList(),
+    ast = null;
+  try {
+    ast = AcornObj.parse.parse(source, options, issues);
+  } catch (ex) {
+    if (IssueHandler.isIssue(ex)) {
+      return { error: ex };
+    } else {
+      throw ex;
+    }
+  }
 
-module.exports = function(source, sourcePath) {
-    //acorn options
-    const options = {
-        sourceType: 'module'
+  if (ast) {
+    const cOptions = {
+      objjScope: false,
+      classDefs: new Map(),
+      protocolDefs: new Map(),
+      typedefs: new Map(),
+      sourceMap: false,
     };
-    let issues = new IssueHandler.IssueList(),
-        ast = null;
-    try {
-        ast = AcornObj.parse.parse(source, options, issues);
-    } catch (ex) {
-        if (IssueHandler.isIssue(ex)) {
-            return {error: ex}
-        } else {
-            throw ex;
-        }
+
+    global.DEBUG = false;
+
+    Object.assign(CompilerObj.defaultOptions, cOptions);
+
+    const compiler = new CompilerObj.Compiler(
+      source,
+      sourcePath,
+      ast,
+      issues,
+      CompilerObj.defaultOptions
+    );
+    compiler.compileWithFormat(CodeGenerator);
+
+    let compilerIssues = [];
+    if (compiler.issueCount > 0) {
+      let count = compiler.issueCount,
+        i = 0;
+      for (; i < count; i++) {
+        let ex = compiler.issues.issues[i];
+        compilerIssues.push(ex);
+      }
     }
 
-    if (ast) {
-        const cOptions = {
-            objjScope: false,
-            classDefs: new Map(),
-            protocolDefs: new Map(),
-            typedefs: new Map(),
-            sourceMap: false
-        };
+    return {
+      code: compiler.code,
+      classDefs: Object.fromEntries(compiler.classDefs),
+      superclassRefs: compiler.superclassRefs,
+      issues: compilerIssues || [],
+      dependencies: compiler.dependencies,
+    };
 
-        global.DEBUG = false;
-
-        Object.assign(CompilerObj.defaultOptions, cOptions);
-
-        const compiler = new CompilerObj.Compiler(source, sourcePath, ast, issues, CompilerObj.defaultOptions);
-        compiler.compileWithFormat(CodeGenerator);
-
-        let compilerIssues = [];
-        if (compiler.issueCount > 0) {
-            let count = compiler.issueCount,
-                i = 0;
-            for (; i < count; i++) {
-                let ex = compiler.issues.issues[i];
-                compilerIssues.push(ex);
-            }
-        }
-
-        return {
-            code: compiler.code,
-            classDefs : Object.fromEntries(compiler.classDefs),
-            superclassRefs: compiler.superclassRefs,
-            issues: compilerIssues || [],
-            dependencies: compiler.dependencies
-        };
-
-        //, sourceMap : JSON.parse(compiler.sourceMap)}
-    }
-}
+    //, sourceMap : JSON.parse(compiler.sourceMap)}
+  }
+};

@@ -1,4 +1,4 @@
-import 'CPObject.j'
+@import 'CPObject.j'
 
 let a = @"Hello";
 
@@ -9,7 +9,6 @@ let a = @"Hello";
 }
 
 -(void) sayHello {
-        alert('Hello')
 
 }
 
