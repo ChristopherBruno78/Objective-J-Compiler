@@ -9,6 +9,7 @@ module.exports = function (source, sourcePath) {
   const options = {
     sourceType: "module",
     onComment: comments,
+    preprocessor: true,
   };
   let issues = new IssueHandler.IssueList(),
     ast = null;
@@ -55,6 +56,7 @@ module.exports = function (source, sourcePath) {
     }
 
     return {
+      ast: ast,
       code: compiler.code,
       classDefs: Object.fromEntries(compiler.classDefs),
       superclassRefs: compiler.superclassRefs,

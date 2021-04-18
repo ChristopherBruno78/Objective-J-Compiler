@@ -97,6 +97,7 @@
     "@protocol": {},
     "@protocol()": {},
     "@ref": {},
+    "#": {},
     "@selector": {},
     "@typedef": {
         "after": ""
